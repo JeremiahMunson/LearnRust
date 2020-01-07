@@ -20,6 +20,14 @@ fn main() {
         // the .expect() is for handling potential failure
         io::stdin().read_line(&mut guess).expect("Failed to read line");
 
+
+        // Not in book (chapter 2) but wanted to try adding it
+        // The .trim() removes white spaces at the start and end of the string
+        if guess.trim() == "quit" {
+            println!("The secret number was {}. Better luck next time!", secret_number);
+            break;
+        }
+
         // This guess variable is shadowing the previous guess variable
         let guess: u32 = match guess.trim().parse() {
             Ok(num) => num,
