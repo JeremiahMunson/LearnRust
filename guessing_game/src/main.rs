@@ -1,4 +1,5 @@
 use std::io;
+use std::cmp::Ordering;
 use rand::Rng;
 
 fn main() {
@@ -18,6 +19,17 @@ fn main() {
     // the .expect() is for handling potential failure
     io::stdin().read_line(&mut guess).expect("Failed to read line");
 
+    // This guess variable is shadowing the previous guess variable
+    let guess: u32 = guess.trim().parse().expect("Please type a number!");
+    // When running and input a character/string Rust is panicking here instead
+    // of printing "Please type a number!"
+
     // Printing a string and using a placeholder
     println!("You guessed: {}", guess);
+
+    match guess.cmp(&secret_number) {
+        Ordering::Less => println!("Too small!"),
+        Ordering::Greater => println!("Too big!"),
+        Ordering::Equal => println!("You win!"),
+    }
 }
