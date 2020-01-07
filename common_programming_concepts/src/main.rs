@@ -120,8 +120,28 @@ fn main() {
 
 
     /* FUNCTIONS */
+    // functions start with fn to signify that they are functions
+    // the function 'another_function' is declared below main
+    another_function();
 
+    // Functions can have parameters. When declaring the function you should
+    // specify the parameter types because it is good for the compiler to use to
+    // determine the type of a variable that gets passed to the function
+    function_with_parameter(5, 6);
 
+    // To return a value you must include '->' followed by the data type after the parameters
+    // You don't have to actually type 'return' to return a value from a function, just don't use ';'
+    // You can use it to return the value and end the function early, but it isn't necessary
+    let y = {
+        let x = 3;
+        x + 1
+    };
+    println!("The value of y is: {}", y);
+
+    let y = func_return(y);
+    println!("The value of y is: {}", y);
+
+   
 
 
 
@@ -137,4 +157,85 @@ fn main() {
 
 
     /* CONTROL FLOW */
+    // If statements 
+    let number = 3;
+    // You don't need/shouldn't(?) add parenthesis around the condition
+    if number < 5 {
+        println!("Condition was true");
+    } else {
+        println!("Condition was false");
+    }
+
+    // You can also use else if
+    if number%4 == 0 {
+        println!("number is divisble by 4");
+    } else if number % 3 == 0 {
+        println!("number is divisible by 3");
+    } else if number % 2 == 0 {
+        println!("number is divisible by 2");
+    } else {
+        println!("number is not divisible by 4, 3, or 2");
+    }
+
+    // You can assign variables using if/else
+    // The data types must be the same because the compiler must
+    // know the variables type at compile time
+    let condition = true;
+    let number = if condition {
+        5
+    } else {
+        6
+    };
+    println!("The value of number is: {}", number);
+
+
+    // Loops
+    // There are 3 kinds of loops 'loop', 'while', 'for'
+
+    // The loop 'loop' is an infinite loop
+    // You can assign variables with 'loop'
+    let mut counter = 0;
+    let result = loop {
+        counter+=1;
+
+        if counter==10 {
+            break counter*2;
+        }
+    };
+    println!("The result is: {}", result);
+
+    // 'while' is run until a condition is met
+    let mut number = 3;
+    while number != 0 {
+        println!("{}!", number);
+
+        number -= 1;
+    }
+    println!("LIFTOFF!!!");
+
+    // 'for' lets you loop through each item in a collection
+    let a = [10,20,30,40,50];
+    for element in a.iter() {
+        println!("the value is: {}", element);
+    }
+
+    // 'for' can also loop through numbers
+    for number in (1..4).rev() {
+        println!("{}!", number);
+    }
+    println!("LIFTOFF!!!");
+
+}
+
+fn another_function() {
+    println!("Another function.");
+}
+
+fn function_with_parameter(x: i32, y: i32) {
+    println!("The value of x is: {}", x);
+    println!("The value of y is: {}", y);
+}
+
+fn func_return(x: i32) -> i32 {
+    x+1
 }
