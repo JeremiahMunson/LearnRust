@@ -9,27 +9,35 @@ fn main() {
 
     println!("The secret number is: {}", secret_number);
 
-    println!("Please input your guess.");
 
-    // let is how variables are initialized
-    // mut means the variable is mutable (can be changed)
-    let mut guess = String::new();
+    // This makes an infinite loop
+    loop {
+        println!("Please input your guess.");
 
-    // Reading in a line from the terminal
-    // the .expect() is for handling potential failure
-    io::stdin().read_line(&mut guess).expect("Failed to read line");
+        // let is how variables are initialized
+        // mut means the variable is mutable (can be changed)
+        let mut guess = String::new();
 
-    // This guess variable is shadowing the previous guess variable
-    let guess: u32 = guess.trim().parse().expect("Please type a number!");
-    // When running and input a character/string Rust is panicking here instead
-    // of printing "Please type a number!"
+        // Reading in a line from the terminal
+        // the .expect() is for handling potential failure
+        io::stdin().read_line(&mut guess).expect("Failed to read line");
 
-    // Printing a string and using a placeholder
-    println!("You guessed: {}", guess);
+        // This guess variable is shadowing the previous guess variable
+        let guess: u32 = guess.trim().parse().expect("Please type a number!");
+        // When running and input a character/string Rust is panicking here instead
+        // of printing "Please type a number!". THIS IS WHAT SHOULD HAPPEN
 
-    match guess.cmp(&secret_number) {
-        Ordering::Less => println!("Too small!"),
-        Ordering::Greater => println!("Too big!"),
-        Ordering::Equal => println!("You win!"),
+        // Printing a string and using a placeholder
+        println!("You guessed: {}", guess);
+
+        match guess.cmp(&secret_number) {
+            Ordering::Less => println!("Too small!"),
+            Ordering::Greater => println!("Too big!"),
+            Ordering::Equal => {
+                println!("You win!");
+                // Exit the infinite loop
+                break;
+            }
+        }
     }
 }
