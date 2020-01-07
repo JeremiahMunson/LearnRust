@@ -7,8 +7,6 @@ fn main() {
 
     let secret_number = rand::thread_rng().gen_range(1,101);
 
-    println!("The secret number is: {}", secret_number);
-
 
     // This makes an infinite loop
     loop {
@@ -23,9 +21,12 @@ fn main() {
         io::stdin().read_line(&mut guess).expect("Failed to read line");
 
         // This guess variable is shadowing the previous guess variable
-        let guess: u32 = guess.trim().parse().expect("Please type a number!");
-        // When running and input a character/string Rust is panicking here instead
-        // of printing "Please type a number!". THIS IS WHAT SHOULD HAPPEN
+        let guess: u32 = match guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+        // The above is now a match expression. If the guess.trim().parse() works
+        // Ok, then the number is assigned. If there is an Error, continue (start the loop again)
 
         // Printing a string and using a placeholder
         println!("You guessed: {}", guess);
