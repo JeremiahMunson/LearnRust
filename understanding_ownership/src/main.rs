@@ -160,8 +160,51 @@ fn main() {
         dangling references
     */
 
+    /*
+        Another data type that does not have ownership is the slice. Slices
+        let you reference a contiguous sequence of elements in a
+        collection rather than the whole collection. 
+    */
+    let s = String::from("hello world");
+    let hello = &s[0..5];
+    let world = &s[6..11];
+    println!("{} {}", hello, world);
+    /*
+        Strings actually have 3 parts: the pointer to the string on
+        the heap, the length of the string, and the capacity. Slices
+        point to the index we wish to start at (the first number), and
+        then set their length to the difference between the second
+        number and the first number (5-0 = 5, 11-6 = 5). Slices don't
+        have a capacity, so that's all they are. That's how they know
+        where to start and when to stop.
 
+        With the range syntax (..) if you want to start at 0 you don't
+        need to say 0 at the start. Likewise, if you are going to the
+        end you don't need to specify that number
+    */
+    let hello = &s[..5];
+    let world = &s[6..];
+    println!("{} {}", hello, world);
 
+    let first = first_word(&s);
+    println!("The first word is: {}", first);
+
+    /*
+        String literals are slices so their type is '&str' and
+        when used in functions (either as a parameter or as a
+        return value) must be typed as such.
+
+        When passing a string as a parameter it is recommended to
+        use a string literal because that way you can use
+        both Strings and string literals. (Using '&str' instead of
+        using '&String' for the type allows for either a '&String' or 
+        a '&str').
+
+        You can slice with other compound data types like arrays too.
+    */
+    let a = [1,2,3,4,5];
+    let slice = &a[1..3];
+    println!("slice = {:?}", slice);
 
 }
 
@@ -199,4 +242,18 @@ fn calculate_length(s: &String) -> usize {  // s is a reference to a String
 
 fn change(some_string: &mut String) {
     some_string.push_str(", world");
+}
+
+fn first_word(s: &str) -> &str {
+    let bytes = s.as_bytes();
+
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[..i];
+        }
+    }
+
+    // This returns the entire string as a slice if
+    // the string itself is only one word
+    &s[..]
 }
