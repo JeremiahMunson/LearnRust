@@ -3,18 +3,55 @@
     <head>
         <meta charset="utf8">
         <title>Rust Basics</title>
+
+        <style>
+            .code {
+                background-color: #e0e0e0;
+                padding: 0 0.2em;
+                border-radius: 10%;
+            }
+        </style>
     </head>
     <body>
         <h1>Rust Basics</h1>
         <p>
             This is just the basics of Rust in condensed form.
-            More detail is covered in the book found <a href="https://doc.rust-lang.org/book/title-page.html">here</a>.
+            More detail is covered in the book found <a target="blank" href="https://doc.rust-lang.org/book/title-page.html">here</a>.
             This is just because there was too much non-code material to nicely include in example programs alone.
         </p>
         <h2>Common Programming Concepts</h2>
         <h3>Variables and Mutability</h3>
 
+        <p>
+            To declare a variable we use the keyword <span class="code"><code>let</code></span>. 
+            This creates a new, immutable variable which means the value of the variable cannot be changed.
+            This is not the same as <span class="code"><code>const</code></span> which declares a constant.
+            A constant must be annotated (type explicity written) while variables usually don't need to.
+            Constants can be declared in any scope, including the global scope, making them useful for values that many parts of code need to know about.
+            Constants must also be set only to a constant expression whereas a variable can be set as the result of a function call or any other value that can only be computed at runtime.
+            You can declare a mutable variable by doing <span class="code"><code>let mut</code></span>, but you can't make an immutable variable mutable.
+        </p>
+        
+        <p>
+            You can shadow a variable by declaring a variable with the same name.
+            This allows you to change the value and even the type of a variable you have already declared.
+            For example, let's say you declare a variable <span class="code"><code>let x = 5;</code></span> and now you want a variable called <span class="code"><code>x</code></span> that holds a string.
+            If you don't need the current variable, you can shadow it by declaring the variable again (<span class="code"><code>let mut x = String::new();</code></span>).
+
+        </p>
+
         <h3>Data Types</h3>
+
+        <h4>Scalar Types</h4>
+        <h5>Integer Types</h5>
+        <h5>Floating-Point Types</h5>
+        <h5>Numeric Operations</h5>
+        <h5>The Boolean Type</h5>
+        <h5>The Character Type</h5>
+
+        <h4>Compound Types</h4>
+        <h5>The Tuple Type</h5>
+        <h5>The Array Type</h5>
 
         <h3>Functions</h3>
 
