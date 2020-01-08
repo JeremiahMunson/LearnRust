@@ -100,13 +100,65 @@ fn main() {
         be returned by the function. Fortunately, Rust has something for 
         this, references. 
     */
-
     let s1 = String::from("hello");
-
     let len = calculate_length(&s1);
-
     println!("The length of '{}' is {}", s1, len);
+    /*
+        The ampersands (&) are references, and they allow you to refer to
+        some value without taking ownership of it. The opposite of referencing by
+        using '&' is dereferencing, which is accomplished with the dereference
+        operator, '*'. By passing a reference to a function the function can
+        access the information but does not own it and therefore the data will
+        not be dropped when the function ends. Having a reference as
+        function parameters is called borrowing. Trying to modify something that
+        is borrowed will result in an error unless the reference is a
+        mutable reference
+    */
+    let mut s = String::from("hello");
+    change(&mut s);
+    println!("{}", s);
+    /*
+        Mutable references have one big restriction: you can have only
+        one mutable reference to a particular piece of data in a
+        particular scope. Many Rustaceans apparently struggle with this because
+        most languages let you mutate whenever you'd like. The benefit of
+        this is that it prevents data races. We can, however, use curly
+        braces to create a new scope, allowing for multiple mutable
+        references, just not simultaneous ones
+    */
+    let mut s = String::from("hello");
+    {
+        let r1 = &mut s;
+    }   // r1 goes out of scope here, so we can make a new reference with no problems.
 
+    let r2 = &mut s;
+    /*
+        A similar rule exists for combining mutable and immutable references. You
+        can have as many immutable references as you'd like, but if there is
+        a mutable reference it must be the only reference, mutable or not.
+
+        Note that a reference's scope starts from where it is introduced and
+        continues through the last time that reference is used. For
+        instance, this code will compile because the last usage of the
+        immutable references occurs before the mutable reference is introduced.
+    */
+
+    let mut s = String::from("hello");
+    let r1 = &s;        // no problem
+    let r2 = &s;        // no problem
+    println!("{} and {}", r1, r2);
+    // r1 and r2 are no longer used after this point
+    let r3 = &mut s;    // no problem
+    println!("{}", r3);
+
+    /*
+        In languages with pointers, it's easy to erroneously create a
+        dangling pointer, a pointer that references a location in memory 
+        that may have been given to someone else, by freeing some memory
+        while preserving a pointer to that memory. In Rust, by contrast,
+        the compiler guarantees that references will never be
+        dangling references
+    */
 
 
 
@@ -140,6 +192,11 @@ fn takes_and_gives_back(a_string: String) -> String {   // a_string comes into
     a_string    // a_string is returned and moves out to the calling function
 }
 
-fn calculate_length(s: &String) -> usize {
+fn calculate_length(s: &String) -> usize {  // s is a reference to a String
     s.len()
+}   // Here, s goes out of scope. But because it does not have ownership of what
+    // it refers to, nothing happens.
+
+fn change(some_string: &mut String) {
+    some_string.push_str(", world");
 }
