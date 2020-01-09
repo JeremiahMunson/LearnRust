@@ -34,6 +34,26 @@ impl Message {
 
 
 
+#[derive(Debug)]
+enum UsState {
+    Alabama,
+    Alaska,
+    Arizona,
+    Arkansas,
+    California,
+    Colorado,
+    // --snip--
+}
+
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+
+
+
 fn main() {
     /*
         We'll look at a situation were an enum coul be useful and
@@ -101,8 +121,92 @@ fn main() {
     let some_string = Some("a string");
     // When we do None we need to tell Option what type it would be
     let absent_number: Option<i32> = None;
+
+
+    /*
+        Rust has an extremely powerful control flow operator called
+        'match' that allows you to compare a value against a series of
+        patterns and then execute code base on which pattern
+        matches. A match starts with the keyword 'match' followed by
+        an expression, like 'if' except an 'if' statement requires the
+        expression return a boolean but for match it can be
+        whatever. Next are the match arms. Each arm has two parts: a
+        pattern and some code. The pattern and the code are separated
+        by the '=>' operator.
+
+        When the 'match' expression executes, it compares the resulting
+        value against the pattern of each arm, in order. If a pattern
+        matches the value, the code associated with that pattern is
+        executed. We can have as many arms as we need. If you want to
+        run multiple lines of code in a match arm, you can use curly
+        brackets.
+    */
+    let penny = Coin::Penny;
+    println!("Penny costs {} cent(s)", value_in_cents(penny));
+    /*
+        Another useful feature of match arms is that they can bind to
+        the parts of the values that match the pattern. This is how we
+        can extract values of of enum variants. As an example, we can
+        add the UsState to Quarters because some quarters have special
+        state designs.
+    */
+    let quarter = Coin::Quarter(UsState::Colorado);
+    println!("Quarter costs {} cent(s)", value_in_cents(quarter));
+    /*
+        We can use 'match' with 'Option<T>'. Previously, we wanted to 
+        get the inner 'T' value out of the 'Some' case when using
+        'Option<T>'. Let's say we want to write a function that takes
+        an 'Option<i32>' and, if there's a value inside, adds 1 to that
+        value. If there isn't a value inside, the function should return
+        the 'None' value and not attempt to perform any operations. 
+    */
+    let five = Some(5);
+    let six = plus_one(five);
+    let none = plus_one(None);
+    /*
+        If no arm pattern matches with the expression, this is an
+        error. When we don't want to list every possible value, we
+        can use the special pattern '_' instead. The '_' pattern will
+        match any value. By putting it at the end it catches any case
+        we did not explicitly make.
+    */
+    let some_u8_value = 0u8;
+    match some_u8_value {
+        1 => println!("one"),
+        3 => println!("three"),
+        5 => println!("five"),
+        7 => println!("seven"),
+        _ => (),
+    }
+    /*
+        The 'match' express can be a bit wordy in a situation in which
+        we care about only one of the cases. For this situation, Rust 
+        provides 'if left'.
+    */
 }
 
 fn route(ip_kind: IpAddrKind) { 
     println!("route");
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {
+            println!("Lucky penny!");
+            1
+        },
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}", state);
+            25
+        },
+    }
+}
+
+fn plus_one(x: Option<i32>) -> Option<i32> {
+    match x {
+        None => None,
+        Some(i) => Some(i+1),
+    }
 }
