@@ -181,8 +181,34 @@ fn main() {
     /*
         The 'match' express can be a bit wordy in a situation in which
         we care about only one of the cases. For this situation, Rust 
-        provides 'if left'.
+        provides 'if left'. 
+        
+        Let's say we want to do something only if the variable 'Some' value
+        is 3, but nothing else.
+
+        "
+        if let _pattern_ = _expression_ {
+            _code_
+        }
+        "
     */
+    let some_u8_value = Some(0u8);
+    match some_u8_value {
+        Some(3) => println!("three"),
+        _ => (),
+    }
+    // This works the exact same as the match above
+    if let Some(3) = some_u8_value {
+        println!("three");
+    }
+    // We can also add an else expression
+    let mut count = 0;
+    let coin = Coin::Quarter(UsState::Arizona);
+    if let Coin::Quarter(state) = coin {
+        println!("State quarter from {:?}", state);
+    } else {
+        count += 1;
+    }
 }
 
 fn route(ip_kind: IpAddrKind) { 
