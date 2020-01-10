@@ -4,11 +4,42 @@ pub mod front_of_house {
     }
 }
 
+// Absolute
+//use crate::front_of_house::hosting;
+// Relative
+//use front_of_house::hosting;
+// We could also do
+//use crate::front_of_house::hosting::add_to_waitlist
+// but by bringing in the parent we know that the
+// function add_to_waitlist isn't locally defined
+
+/*
+    When we bring a name into scope with 'use', the name
+    available in the new scope is private. To enable the
+    code that calls our code to refer to that name as if
+    it had been defined in that code's scope, we can
+    combine 'pub' and 'use'. This technique is called
+    "re-exporting" because we're bringing an item into
+    scope but also making that item available for others to
+    bring into their scope
+*/
+pub use crate::front_of_house::hosting;
+/*
+    By using 'pub use', external code can now call the
+    'add_to_waitlist' function using 'hosting::add_to_waitlist'. If
+    we hadn't specified 'pub use', the 'eat_at_restaurant' function 
+    could call 'hosting::add_to_waitlist' in its scope, but external
+    code couldn't take advantage of this new path.
+*/
+
 pub fn eat_at_resaurant() {
     // Absolute path
-    crate::front_of_house::hosting::add_to_waitlist();
+    //crate::front_of_house::hosting::add_to_waitlist();
     // Relative path
-    front_of_house::hosting::add_to_waitlist();
+    //front_of_house::hosting::add_to_waitlist();
+
+    // Because we brought the hosting path into scope we can just do
+    hosting::add_to_waitlist();
 
 
     // Order a breakfast in the summer with Rye toast
