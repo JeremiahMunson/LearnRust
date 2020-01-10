@@ -201,17 +201,17 @@ fn main() {
         Remember that strings are UTF-8 encoded, so we can include any properly encoded
         data in them, as shown below.
     */
-    let hello = String::from("السلام عليكم");
-    let hello = String::from("Dobrý den");
-    let hello = String::from("Hello");
-    let hello = String::from("שָׁלוֹם");
-    let hello = String::from("नमस्ते");
-    let hello = String::from("こんにちは");
-    let hello = String::from("안녕하세요");
-    let hello = String::from("你好");
-    let hello = String::from("Olá");
-    let hello = String::from("Здравствуйте");
-    let hello = String::from("Hola");
+    let hello1 = String::from("السلام عليكم");
+    let hello2 = String::from("Dobrý den");
+    let hello3 = String::from("Hello");
+    let hello4 = String::from("שָׁלוֹם");
+    let hello5 = String::from("नमस्ते");
+    let hello6 = String::from("こんにちは");
+    let hello7 = String::from("안녕하세요");
+    let hello8 = String::from("你好");
+    let hello9 = String::from("Olá");
+    let hello10 = String::from("Здравствуйте");
+    let hello11 = String::from("Hola");
 
 
 
@@ -282,8 +282,105 @@ fn main() {
     let s = format!("{}-{}-{}", s1, s2, s3);
 
     /*
-        
+        In many other programming languages, accessing individual characters in a 
+        string by referencing them by index is a valid and common operation. However,
+        if you try to access parts of a 'String' using indexing syntax in
+        Rust, you'll get an error.
+
+        Rust strings don't support indexing. A 'String' is a wrapper over a
+        'Vec<u8>'. Let's look ast some of our properly encoded UTF-8 example
+        strings from before.
+    */
+    let len = hello11.len();
+    println!("{} has a length of {}", hello11, len);
+    let len = hello10.len();
+    println!("{} has a length of {}", hello10, len);
+    /*
+        The first, "Hola" has a length of 4, which means the vector storing the
+        string "Hola" is 4 bytes long. Each of these letters takes 1 byte when
+        encoded in UTF-8. But what about the next string? Asked how long the
+        string is, you might say 12. However, Rust's answer is 24: that's the
+        number of bytes it takes to encode "Здравствуйте" in UTF-8, because each
+        Unicode scalar value in that string takes 2 bytes of storage. Therefore, an
+        index into the string's bytes will not always correlate to a valid Unicode
+        scalar value. To domonstrate, consider this invalid Rust code:
+
+        let hello = "Здравствуйте";
+        let answer = &hello[0];
+
+        What should the value of 'answer' be? Should it be З, the first
+        letter? when encoded in UTF-8, the first byte of З is 208 and the second
+        is 151, so 'answer' should be 208, but 208 is not a valid character on
+        its own. 
     */
 
+    /*
+        If we look at the Hindi word “नमस्ते” written in the Devanagari script, it is 
+        stored as a vector of 'u8' values that looks like this:
+
+        [224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]
+
+        That’s 18 bytes and is how computers ultimately store this data. If we look 
+        at them as Unicode scalar values, which are what Rust’s char type is, those 
+        bytes look like this:
+
+        ['न', 'म', 'स', '्', 'त', 'े']
+
+        There are six 'char' values here, but the fourth and sixth are not
+        letters: they're diacritics that don't make sense on their own. Finally,
+        if we look at them as grapheme clusters, we'd get what a person would
+        call the four letters that make up the Hindi word:
+        
+        ["न", "म", "स्", "ते"]
+
+        Rust provides different ways of interpreting the raw string data that 
+        computers store so that each program can choose the interpretation it 
+        needs, no matter what human language the data is in.
+
+
+        A final reason Rust doesn't allow us to index into a String to get a
+        character is that indexing operations are expected to always take constant
+        time (O(1)). But it isn't possible to guarantee that performance with a
+        'String', because Rust would have to walk through the contents from the 
+        beginning to the index to determine how many valid characters there were.
+    */
+
+    /*
+        Indexing into a string is often a bad idea because it's not clear what the
+        return type of the string-indexing operation should be: a byte value, a
+        character, a grapheme cluster, or a string slice. Therefore, Rust asks you
+        to be more specific if you really need to use indices to create string
+        slices. To be more specific in your indexing and indicate that you want a
+        string slice, rather than indexing using '[]' with a single number, you
+        can use '[]' with a range to create a string slice containing particular
+        bytes:
+    */
+    let hello = "Здравствуйте";
+    let s = &hello[0..4];
+    /*
+        Here, 's' will be a '&str' that contains the first 4 bytes of the
+        string. Earlier, we mentioned that each of these characters was 2 bytes,
+        which means 's' will be Зд.
+
+        What would happen if we used &hello[0..1]? The answer: Rust would
+        panic at runtime in the same way as if an invalid index were accessed in
+        a vector.
+    */
+
+    /*
+        Fortunately, you can access elements in a string in other ways. If you
+        need to perform operations on individual Unicode scalar values, the best
+        way to do so is to use the 'chars' method. Calling 'chars' on “नमस्ते”
+        separates out and returns six values of type 'char', and you can iterate
+        over the result to access each element:
+    */
+    for c in hello5.chars() {
+        println!("{}", c);
+    }
+    // The 'bytes' method returns each raw byte, which might be appropriate for
+    // your domain:
+    for b in hello5.bytes() {
+        println!("{}", b);
+    }
 }
 
