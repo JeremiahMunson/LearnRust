@@ -1,7 +1,7 @@
 use std::io;
 use rand::Rng;
-use mylib::stats;
-use unicode_segmentation::UnicodeSegmentation;
+use mylib::{stats, pig_latin};
+
 
 fn main() {
     /*
@@ -82,37 +82,9 @@ fn main() {
     println!("\nEnter text to be transformed into pig latin:");
     let mut text = String::new();
     io::stdin().read_line(&mut text).expect("Failed to read line.");
-    let mut return_string = String::from("Text in pig latin:");
+    let text_in_pig_latin = pig_latin::to_pig_latin(&text);
 
-    // Split text into different words, then go through each word making it pig latin
-    let words = text.split_whitespace();
-    for slice in words {
-        // This gets the word (slice) as a vector of graphemes to handle any language
-        let mut graphemes = UnicodeSegmentation::graphemes(slice, true).collect::<Vec<&str>>();
-
-        // Check if word starts with a vowel and add "h" to the start of the word if it does
-        let first = graphemes.get(0);
-        match first {
-            Some(s) => {
-                if *s == "a" || *s == "e" || *s == "i" || *s == "o" || *s == "u" {
-                    graphemes.insert(0,"h");
-                }
-            },
-            None => continue,
-        };
-        
-        // Add "-" to the end, move the first letter to be the last, add "ay" to the end
-        // We always want to move the first letter to the end because vowels had "h" added
-        // to the front above
-        graphemes.push("-");
-        graphemes.rotate_left(1);
-        graphemes.push("ay");
-
-        // Add the word to the existing phrase
-        return_string = format!("{} {}", return_string, graphemes.concat());
-    }
-
-    println!("{}", return_string);
+    println!("Pig Latin: {}", text_in_pig_latin);
 }
 
 
