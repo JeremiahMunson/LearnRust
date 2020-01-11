@@ -1,12 +1,6 @@
 use std::io;
 use rand::Rng;
-use std::collections::HashMap;
-
-enum Median {
-    None,
-    One(i32),
-    Two(i32,i32),
-}
+use mylib::stats;
 
 fn main() {
     /*
@@ -17,6 +11,7 @@ fn main() {
     */
 
     // Getting vector information from user
+    // The number of elements should be type 'usize'
     let number_elements: usize = get_user_vector_info("How many elements should the vector have:", Option::Some(1), Option::None) as usize;
     let mut lower_bound;
     let mut upper_bound;
@@ -25,93 +20,45 @@ fn main() {
         lower_bound = get_user_vector_info("Lower bound of numbers:", Option::None, Option::None);
         upper_bound = get_user_vector_info("Upper bound of numbers:", Option::None, Option::None);
 
+        // the lower_bound should be less than or equal to the upper_bound
         if lower_bound <= upper_bound {
             break;
         }
-
-        println!("Upper bound must be greater than or equal to lower bound");
     }
 
-    // Creating the vector using user input and making hash map with frequency of numbers
+    // Creating the vector using user input
     let mut numbers: Vec<i32> = Vec::new();
-    let mut number_frequency = HashMap::new();
     for _i in 0..number_elements {
-        let random_number = rand::thread_rng().gen_range(lower_bound, upper_bound+1);
-        numbers.push(random_number);
-
-        let count = number_frequency.entry(random_number).or_insert(0);
-        *count += 1;
+        numbers.push(rand::thread_rng().gen_range(lower_bound, upper_bound+1));
     }
 
-    // CALCULATING THE MEAN
-    let mut sum: i32 = 0;
-    for arr in numbers.iter() {
-        sum += arr;
-    }
-    let average = sum as f64 / number_elements as f64;
-    println!("The mean value of the vector is {}", average);
+    // Calculate and print mean value of the vector
+    let mean = stats::calc_mean(&numbers);
+    println!("The mean value of the vector is {}", mean);
 
+    // Calculate and print the median value of the vector
+    let median = stats::calc_median(&numbers);
+    median.print();
 
-    // Sort the numbers from lowest to highest
-    numbers.sort_by(|a, b| a.cmp(b));
-
-    // The median may not be one number, it could be two
-    let index = number_elements/2;
-    let mut median = Median::None;
-    if number_elements%2 == 1 {
-        if let Some(i) = numbers.get(index) {
-            median = Median::One(*i);
-        }
+    // Calculate the mode(s) of the vector
+    let modes = stats::calc_mode(&numbers);
+    // Printing the mode(s) of the vector
+    if modes.len() == 1 {
+        println!("Mode is: {}", modes[0]);
     } else {
-        let first_index = index - 1;
-
-        // Get 'i' and 'j', the two elements for the median and check if
-        // they are the same. If same, median is just that number. If
-        // different, both numbers represent the median
-        if let Some(i) = numbers.get(first_index) {
-            if let Some(j) = numbers.get(index) {
-                median = if i == j {
-                    Median::One(*i)
-                } else {
-                    Median::Two(*i,*j)
-                };
-            }
-        }
-    };
-
-    match median {
-        Median::None => println!("There is no median somehow..."),
-        Median::One(i) => println!("Median value is: {}", i),
-        Median::Two(i,j) => println!("Median value is: {} and {}", i, j),
-    };
-
-
-    let mut max_freq = 0;
-    let mut nums = Vec::new();
-    for (num, freq) in number_frequency.iter() {
-        if *freq > max_freq {
-            nums.clear();
-            nums.push(num);
-            max_freq = *freq;
-        } else if *freq == max_freq {
-            nums.push(num);
-        }
-    }
-    nums.sort_by(|a,b| a.cmp(b));
-    if nums.len() == 1 {
-        println!("Mode is: {}", nums[0]);
-    } else {
+        // Formatting the modes string
         let mut to_print = String::from("Modes are:");
-        for n in nums.iter() {
+        for n in modes.iter() {
             to_print = format!("{} {},", to_print, n);
         }
+
+        // Remove the last ','
         to_print.pop();
         println!("{}", to_print);
     }
-    //println!("Number of modes: {}", nums.len());
     
 
-
+    numbers.sort();
     println!("Numbers: {:?}", numbers);
 }
 
