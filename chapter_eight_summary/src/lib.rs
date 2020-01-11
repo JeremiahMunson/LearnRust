@@ -1,4 +1,6 @@
 pub mod stats {
+    use std::io;
+    
     pub enum Median {
         None,
         One(i32),
@@ -12,6 +14,37 @@ pub mod stats {
                 Median::One(i) => println!("Median value is: {}", i),
                 Median::Two(i,j) => println!("Median values are: {} and {}", i, j),
             };
+        }
+    }
+
+    pub fn get_user_vector_info(message: &str, lower_lim: Option<i32>, upper_lim: Option<i32>) -> i32{
+        let mut user_input: String;
+        loop {
+            println!("{}", message);
+            user_input = String::new();
+    
+            io::stdin().read_line(&mut user_input).expect("Failed to read line.");
+    
+            let var: i32 = match user_input.trim().parse() {
+                Ok(num) => num,
+                Err(_) => continue,
+            };
+    
+            // If lower_lim is not None, make sure the input is greater than or equal to the lower limit
+            if let Some(i) = lower_lim {
+                if i > var {
+                    continue;
+                }
+            }
+    
+            // If upper_lim is not None, make sure the input is less than or equal to the upper limit
+            if let Some(i) = upper_lim {
+                if i < var {
+                    continue;
+                }
+            }
+    
+            return var;
         }
     }
 
