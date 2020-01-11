@@ -1,6 +1,7 @@
 use std::io;
 use rand::Rng;
 use mylib::{stats, pig_latin, department};
+use std::collections::HashMap;
 
 
 fn main() {
@@ -105,7 +106,9 @@ fn main() {
         Rename _name1_ from _department_ to _name2_
 
     */
-    println!("\nInput employee");
-    department::get_employee();
+    println!("\nUpdate Employee Directory");
+    let mut employees_by_department: HashMap<String, Vec<String>> = HashMap::new();
+    department::update_employees(&mut employees_by_department);
+    println!("{:?}", employees_by_department);
 
 }

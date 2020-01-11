@@ -180,9 +180,8 @@ pub mod department {
         BREAK,
     }
 
-    pub fn get_employee() {
+    pub fn update_employees(employees_by_department: &mut HashMap<String, Vec<String>>) {
         let mut user_input;
-        let mut employees_by_department: HashMap<&str, Vec<str>> = HashMap::new();
 
         loop { 
             user_input = String::new();
@@ -194,7 +193,7 @@ pub mod department {
             }
             match words.pop_front() {
                 Some("Add") => {
-                    match add_employee(&mut words, &mut employees_by_department) {
+                    match add_employee(&mut words, employees_by_department) {
                         Next::CONT => {println!("Error: Could not add employee. Try again."); continue},
                         Next::BREAK => break,
                     }
@@ -207,7 +206,7 @@ pub mod department {
         }
     }
 
-    fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<&str, Vec<str>>) -> Next{
+    fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next{
         let mut name = String::new();
         // Loop through the input until we reach "to". Everything before that is a name
         loop {
@@ -250,13 +249,18 @@ pub mod department {
         }
 
         department_name.pop(); // Removes space added from formatting
+
+        let name_cloned = name.clone();
+        let department_cloned = department_name.clone();
         
-        let emps = employees.entry(&department_name).or_insert(Vec::new());
         
+        let emps = employees.entry(department_name).or_insert(Vec::new());
+        // department_name no longer in scope
+
+
         // .contains() would expect &&name but &&name is type &&String and it wants &&str
         // I got around this by making a reference to name as a variable because 
         // Rust can force &String to act like &str but apparently not &&String to &&str
-        let name_ref: &str = &name;
         if emps.contains(&name) {
             println!("An employee with that name already exists in this department");
             return Next::CONT;
@@ -265,10 +269,12 @@ pub mod department {
         // If the vector already has the name it would have returned, leaving the function and
         // not reaching this point
         emps.push(name);
+        // name no longer in scope
         emps.sort();
 
+        println!("Added {} to {}", name_cloned, department_cloned);
 
-        println!("Added {} to {}", name, department_name);
         Next::BREAK
     }
+    
 }
