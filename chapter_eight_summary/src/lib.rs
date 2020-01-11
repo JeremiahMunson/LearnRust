@@ -326,13 +326,19 @@ pub mod department {
 
         department_name.pop(); // Removes space added from formatting
 
-        let emps = match employees.get(&department_name) {
+        let emps = match employees.get_mut(&department_name) {
             Some(v) => v,
             None => return Next::CONT,
         };
 
-        if emps.contains(&name) {
-            emps.remove_item(&name);
+        let location_employee = emps.binary_search(&name);
+        match location_employee {
+            Ok(loc) => emps.remove(loc),
+            _ => return Next::CONT,
+        };
+        
+        if emps.len() == 0 {
+            employees.remove(&department_name);
         }
 
         println!("Removed {} from {}", name, department_name);
