@@ -1,6 +1,6 @@
 use std::io;
 use rand::Rng;
-use mylib::{stats, pig_latin};
+use mylib::{stats, pig_latin, department};
 
 
 fn main() {
@@ -66,7 +66,6 @@ fn main() {
 
 
 
-
      /*
         The second exercise is to convert strings to pig latin. The first
         consonant of each word is moved to the end of the word and "ay" is
@@ -85,4 +84,28 @@ fn main() {
     let text_in_pig_latin = pig_latin::to_pig_latin(&text);
 
     println!("Pig Latin: {}", text_in_pig_latin);
+
+
+
+
+
+     /*
+        The third exercise is to use a hash map and vectors to create a text 
+        interface to allow a user to add employee names to a department in a 
+        company. For example, “Add Sally to Engineering” or 
+        “Add Amir to Sales.” Then let the user retrieve a list of all 
+        people in a department or all people in the company by 
+        department, sorted alphabetically.
+
+        I'll set it up to add, remove, move, and rename employees with
+
+        Add _name_ to _department_
+        Remove _name_ from _department_
+        Move _name_ from _department1_ to _department2_
+        Rename _name1_ from _department_ to _name2_
+
+    */
+    println!("\nInput employee");
+    department::get_employee();
+
 }

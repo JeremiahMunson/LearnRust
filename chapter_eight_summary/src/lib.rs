@@ -1,6 +1,6 @@
 pub mod stats {
-    use std::io;
-    
+    pub use std::io;
+
     pub enum Median {
         None,
         One(i32),
@@ -127,11 +127,10 @@ pub mod stats {
 }
 
 
-
 pub mod pig_latin {
     use unicode_segmentation::UnicodeSegmentation;
 
-    pub fn to_pig_latin(txt: &String) -> String {
+    pub fn to_pig_latin(txt: &str) -> String {
         //let mut return_string = String::from("Text in pig latin:");
         let mut return_string = String::new();
 
@@ -167,5 +166,109 @@ pub mod pig_latin {
         }
 
         return_string
+    }
+}
+
+
+
+pub mod department {
+    use std::io;
+    use std::collections::{LinkedList, HashMap};
+
+    enum Next {
+        CONT,
+        BREAK,
+    }
+
+    pub fn get_employee() {
+        let mut user_input;
+        let mut employees_by_department: HashMap<&str, Vec<str>> = HashMap::new();
+
+        loop { 
+            user_input = String::new();
+            io::stdin().read_line(&mut user_input).expect("Failed to read line.");
+            let split_text = user_input.split_whitespace();
+            let mut words: LinkedList<&str> = LinkedList::new();
+            for word in split_text {
+                words.push_back(word);
+            }
+            match words.pop_front() {
+                Some("Add") => {
+                    match add_employee(&mut words, &mut employees_by_department) {
+                        Next::CONT => {println!("Error: Could not add employee. Try again."); continue},
+                        Next::BREAK => break,
+                    }
+                },
+                Some("Remove") => {println!("Removing"); break},
+                Some("Move") => {println!("Moving"); break},
+                Some("Rename") => {println!("Renaming"); break},
+                _ => continue,
+            };
+        }
+    }
+
+    fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<&str, Vec<str>>) -> Next{
+        let mut name = String::new();
+        // Loop through the input until we reach "to". Everything before that is a name
+        loop {
+            let next = txt.pop_front();
+            // Check if next word is "to", something else, or doesn't exist
+            match next {
+                // If the next word is "to", leave the loop
+                Some("to") => break,
+                // If the next word exists, add it to the name
+                Some(i) => {
+                    name = format!("{}{} ", name, i)
+                },
+                // If there is no next word, return Next::CONT because it can't add employee
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of name is 0 then there was no name input
+        if name.len() == 0 {
+            return Next::CONT;
+        }
+        name.pop(); // Removes space added from formating
+
+        let mut department_name = String::new();
+        // Loop through the input until we reach the end of the string. Everything is
+        // the department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some(i) => {
+                    department_name = format!("{}{} ", department_name, i)
+                }
+                None => break
+            };
+        }
+
+        // If the length of department_name is 0 then there was no department name input
+        if department_name.len() == 0 {
+            return Next::CONT;
+        }
+
+        department_name.pop(); // Removes space added from formatting
+        
+        let emps = employees.entry(&department_name).or_insert(Vec::new());
+        
+        // .contains() would expect &&name but &&name is type &&String and it wants &&str
+        // I got around this by making a reference to name as a variable because 
+        // Rust can force &String to act like &str but apparently not &&String to &&str
+        let name_ref: &str = &name;
+        if emps.contains(&name) {
+            println!("An employee with that name already exists in this department");
+            return Next::CONT;
+        }
+
+        // If the vector already has the name it would have returned, leaving the function and
+        // not reaching this point
+        emps.push(name);
+        emps.sort();
+
+
+        println!("Added {} to {}", name, department_name);
+        Next::BREAK
     }
 }
