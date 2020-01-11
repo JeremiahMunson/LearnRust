@@ -198,7 +198,12 @@ pub mod department {
                         Next::BREAK => break,
                     }
                 },
-                Some("Remove") => {println!("Removing"); break},
+                Some("Remove") => {
+                    match remove_employee(&mut words, employees_by_department) {
+                        Next::CONT => {println!("Error: Could not remove employee. Try again."); continue},
+                        Next::BREAK => break
+                    }
+                },
                 Some("Move") => {println!("Moving"); break},
                 Some("Rename") => {println!("Renaming"); break},
                 _ => continue,
@@ -277,4 +282,61 @@ pub mod department {
         Next::BREAK
     }
     
+    fn remove_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
+        let mut name = String::new();
+        // Loop through the input until we reach "to". Everything before that is a name
+        loop {
+            let next = txt.pop_front();
+            // Check if next word is "to", something else, or doesn't exist
+            match next {
+                // If the next word is "to", leave the loop
+                Some("from") => break,
+                // If the next word exists, add it to the name
+                Some(i) => {
+                    name = format!("{}{} ", name, i)
+                },
+                // If there is no next word, return Next::CONT because it can't add employee
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of name is 0 then there was no name input
+        if name.len() == 0 {
+            return Next::CONT;
+        }
+        name.pop(); // Removes space added from formating
+
+        let mut department_name = String::new();
+        // Loop through the input until we reach the end of the string. Everything is
+        // the department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some(i) => {
+                    department_name = format!("{}{} ", department_name, i)
+                }
+                None => break
+            };
+        }
+
+        // If the length of department_name is 0 then there was no department name input
+        if department_name.len() == 0 {
+            return Next::CONT;
+        }
+
+        department_name.pop(); // Removes space added from formatting
+
+        let emps = match employees.get(&department_name) {
+            Some(v) => v,
+            None => return Next::CONT,
+        };
+
+        if emps.contains(&name) {
+            emps.remove_item(&name);
+        }
+
+        println!("Removed {} from {}", name, department_name);
+
+        Next::BREAK
+    }
 }
