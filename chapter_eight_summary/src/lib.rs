@@ -210,7 +210,12 @@ pub mod department {
                         Next::BREAK => break
                     }
                 },
-                Some("Rename") => {println!("Renaming"); break},
+                Some("Rename") => {
+                    match rename_employee(&mut words, employees_by_department) {
+                        Next::CONT => {println!("Error: Could not rename employee. Try again."); continue},
+                        Next::BREAK => break
+                    }
+                },
                 Some("Print") => {
                     match print(&mut words, employees_by_department) {
                         Next::CONT => {println!("Error: Could not print employees. Try again."); continue},
@@ -234,8 +239,8 @@ pub mod department {
     fn help_info() {
         println!("Add employee: 'Add name to dept'");
         println!("Remove employee: 'Remove name from dept'");
-        println!("Move employee: 'Move name from old_dept to new_dept'")
-        println!("Rename employee: 'Rename old_name in dept to new_name")
+        println!("Move employee: 'Move name from old_dept to new_dept'");
+        println!("Rename employee: 'Rename old_name in dept to new_name");
         println!("Print employees from department: 'Print dept'");
         println!("Print all employees: 'Print'");
         println!("Leave program: 'Exit'");
@@ -526,6 +531,101 @@ pub mod department {
 
 
         println!("Moved {} from {} to {}", name, old_department, new_department);
+
+
+        Next::BREAK
+    }
+
+
+    fn rename_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
+        let mut old_name = String::new();
+        // Loop through the input until we reach "in". Everything before that is a name
+        loop {
+            let next = txt.pop_front();
+            // Check if next word is "in", something else, or doesn't exist
+            match next {
+                // If the next word is "in", leave the loop
+                Some("in") => break,
+                // If the next word exists, add it to the name
+                Some(i) => {
+                    old_name = format!("{}{} ", old_name, i)
+                },
+                // If there is no next word, return Next::CONT because it can't add employee
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of name is 0 then there was no name input
+        if old_name.len() == 0 {
+            return Next::CONT;
+        }
+        old_name.pop(); // Removes space added from formating
+
+        //println!("Name: {}", name);
+
+        let mut department = String::new();
+        // Loop through the input until we reach "to". Everything is
+        // the current department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some("to") => break,
+                Some(i) => {
+                    department = format!("{}{} ", department, i)
+                },
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of old_department is 0 then there was no department name input
+        if department.len() == 0 {
+            return Next::CONT;
+        }
+
+        department.pop(); // Removes space added from formatting
+
+
+        let mut new_name = String::new();
+        // Loop through the input until we reach the end of the string. Everything is
+        // the new department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some(i) => {
+                    new_name = format!("{}{} ", new_name, i);
+                },
+                None => break,
+            }
+        }
+
+        // If the length of new_department is 0 then there was no department name input
+        if new_name.len() == 0 {
+            return Next::CONT;
+        }
+
+        new_name.pop();
+
+        let emps = match employees.get_mut(&department) {
+            Some(v) => v,
+            None => return Next::CONT,
+        };
+
+        match emps.binary_search(&new_name) {
+            Ok(_) => return Next::CONT,
+            Err(_) => {
+                if let Ok(loc) = emps.binary_search(&old_name) {
+                    if let Some(s) = emps.get_mut(loc) {
+                        *s = new_name.clone();
+                    }
+                }
+            }
+        };
+        
+
+
+
+
+        println!("Renamed {} in {} to {}", old_name, department, new_name);
 
 
         Next::BREAK
