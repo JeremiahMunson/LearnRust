@@ -212,9 +212,21 @@ pub mod department {
                         Next::BREAK => break
                     }
                 },
+                Some("Help") => {
+                    help_info(); 
+                    break;
+                },
                 _ => continue,
             };
         }
+    }
+
+    fn help_info() {
+        println!("Add employee: 'Add name to dept'");
+        println!("Remove employee: 'Remove name from dept'");
+        println!("Print employees from department: 'Print dept'");
+        println!("Print all employees: 'Print'");
+        println!("Names and departments can be multiple words.");
     }
 
     fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next{
