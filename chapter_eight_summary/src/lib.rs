@@ -175,12 +175,12 @@ pub mod department {
     use std::io;
     use std::collections::{LinkedList, HashMap};
 
-    enum Next {
+    pub enum Next {
         CONT,
         BREAK,
     }
 
-    pub fn update_employees(employees_by_department: &mut HashMap<String, Vec<String>>) {
+    pub fn update_employees(employees_by_department: &mut HashMap<String, Vec<String>>) -> Next {
         let mut user_input;
 
         loop { 
@@ -204,7 +204,12 @@ pub mod department {
                         Next::BREAK => break
                     }
                 },
-                Some("Move") => {println!("Moving"); break},
+                Some("Move") => {
+                    match move_employee(&mut words, employees_by_department) {
+                        Next::CONT => {println!("Error: Could not move employees. Try again."); continue},
+                        Next::BREAK => break
+                    }
+                },
                 Some("Rename") => {println!("Renaming"); break},
                 Some("Print") => {
                     match print(&mut words, employees_by_department) {
@@ -216,17 +221,27 @@ pub mod department {
                     help_info(); 
                     break;
                 },
+                Some("Exit") => {
+                    return Next::BREAK;
+                },
                 _ => continue,
             };
         }
+
+        Next::CONT
     }
 
     fn help_info() {
         println!("Add employee: 'Add name to dept'");
         println!("Remove employee: 'Remove name from dept'");
+        println!("Move employee: 'Move name from old_dept to new_dept'")
+        println!("Rename employee: 'Rename old_name in dept to new_name")
         println!("Print employees from department: 'Print dept'");
         println!("Print all employees: 'Print'");
+        println!("Leave program: 'Exit'");
+
         println!("Names and departments can be multiple words.");
+
     }
 
     fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next{
@@ -417,6 +432,101 @@ pub mod department {
         people.pop();
 
         println!("All Employees: {}", people);
+
+        Next::BREAK
+    }
+
+    fn move_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
+        let mut name = String::new();
+        // Loop through the input until we reach "in". Everything before that is a name
+        loop {
+            let next = txt.pop_front();
+            // Check if next word is "in", something else, or doesn't exist
+            match next {
+                // If the next word is "in", leave the loop
+                Some("from") => break,
+                // If the next word exists, add it to the name
+                Some(i) => {
+                    name = format!("{}{} ", name, i)
+                },
+                // If there is no next word, return Next::CONT because it can't add employee
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of name is 0 then there was no name input
+        if name.len() == 0 {
+            return Next::CONT;
+        }
+        name.pop(); // Removes space added from formating
+
+        //println!("Name: {}", name);
+
+        let mut old_department = String::new();
+        // Loop through the input until we reach "to". Everything is
+        // the current department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some("to") => break,
+                Some(i) => {
+                    old_department = format!("{}{} ", old_department, i)
+                },
+                None => return Next::CONT,
+            };
+        }
+
+        // If the length of old_department is 0 then there was no department name input
+        if old_department.len() == 0 {
+            return Next::CONT;
+        }
+
+        old_department.pop(); // Removes space added from formatting
+
+
+        let mut new_department = String::new();
+        // Loop through the input until we reach the end of the string. Everything is
+        // the new department name
+        loop {
+            let next = txt.pop_front();
+            match next {
+                Some(i) => {
+                    new_department = format!("{}{} ", new_department, i);
+                },
+                None => break,
+            }
+        }
+
+        // If the length of new_department is 0 then there was no department name input
+        if new_department.len() == 0 {
+            return Next::CONT;
+        }
+
+        new_department.pop();
+
+        //let name_cloned = name.clone();
+        //let old_cloned = old_department.clone();
+        //let new_cloned = new_department.clone();
+
+
+        let emps = match employees.get_mut(&old_department) {
+            Some(v) => v,
+            None => return Next::CONT,
+        };
+
+        let location_employee = emps.binary_search(&name);
+        match location_employee {
+            Ok(loc) => emps.remove(loc),
+            _ => return Next::CONT,
+        };
+
+        let new_emps = employees.entry(new_department.clone()).or_insert(Vec::new());
+        new_emps.push(name.clone());
+        new_emps.sort();
+
+
+        println!("Moved {} from {} to {}", name, old_department, new_department);
+
 
         Next::BREAK
     }

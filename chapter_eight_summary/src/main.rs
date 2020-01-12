@@ -109,8 +109,9 @@ fn main() {
     println!("\nUpdate Employee Directory");
     let mut employees_by_department: HashMap<String, Vec<String>> = HashMap::new();
     loop {
-        department::update_employees(&mut employees_by_department);
-        //println!("{:?}", employees_by_department);
+        if let department::Next::BREAK = department::update_employees(&mut employees_by_department) {
+            break;
+        }
     }
     
 
