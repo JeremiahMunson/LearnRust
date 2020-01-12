@@ -206,6 +206,12 @@ pub mod department {
                 },
                 Some("Move") => {println!("Moving"); break},
                 Some("Rename") => {println!("Renaming"); break},
+                Some("Print") => {
+                    match print(&mut words, employees_by_department) {
+                        Next::CONT => {println!("Error: Could not print employees. Try again."); continue},
+                        Next::BREAK => break
+                    }
+                },
                 _ => continue,
             };
         }
@@ -342,6 +348,63 @@ pub mod department {
         }
 
         println!("Removed {} from {}", name, department_name);
+
+        Next::BREAK
+    }
+
+    fn print(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
+        let mut dep = String::new();
+        loop {
+            let next = txt.pop_front();
+            let new_word = match next {
+                Some(i) => i,
+                None => break,
+            };
+            dep = format!("{}{} ", dep, new_word);
+        }
+
+        if dep.len() == 0 {
+            return print_everyone(employees);
+        }
+
+        // Remove space from formatting
+        dep.pop();
+
+        // Get vector of people from the hash map
+        let dep_employees = match employees.get(&dep) {
+            Some(txt) => txt,
+            None => return Next::CONT,
+        };
+
+        let mut people = String::new();
+        for person in dep_employees {
+            people = format!("{}{}, ", people, person);
+        }
+        people.pop();
+        people.pop();
+
+        println!("Employees in {}: {:?}", dep, people);
+
+        Next::BREAK
+    }
+
+    fn print_everyone(employees: &mut HashMap<String, Vec<String>>) -> Next{
+        let mut everyone:  Vec<String> = Vec::new();
+        let mut all_employees = employees.clone();
+        for val in all_employees.values_mut() {
+            everyone.append(val);
+        }
+
+        everyone.sort();
+        let mut people = String::new();
+        for person in everyone {
+            people = format!("{}{}, ", people, person);
+        }
+
+        people.pop();
+        people.pop();
+
+        println!("All Employees: {}", people);
 
         Next::BREAK
     }
