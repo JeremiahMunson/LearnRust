@@ -483,6 +483,7 @@ pub mod department {
                     println!("Add Employee:\t\t\t\"Add 'name' to 'department'\"");
                     println!("Move Employee:\t\t\t\"Move 'name from 'old department' to 'new department'\"");
                     println!("Remove Employee:\t\t\"Remove 'name' from 'department'\"");
+                    println!("Rename Employee:\t\t\"Rename 'old name' in 'department' to 'new name'\"");
                     println!("Print Employees in Department:\t\"Print 'department'\"");
                     println!("Print All Employees:\t\t\"Print\"");
                     println!("You don't need to add single quotes around names and departments. They can also be more than one word.");
