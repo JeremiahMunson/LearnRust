@@ -215,20 +215,23 @@ pub mod department {
         fn print(&mut self, txt: &mut std::str::SplitWhitespace) {
             match Directory::get_name(txt, Option::None) {
                 Return::Some(s) => Directory::print_department(self, &s),
-                Return::Empty => println!("{:?}", self.all_employees),
+                Return::Empty => {
+                    self.all_employees.sort();
+                    println!("All employees: {}", self.all_employees.join(", "));
+                },
                 Return::None => return (),
             };
         }
 
         fn print_department(&mut self, dept: &str) {
-            let employees = match self.employees_by_department.get(dept) {
+            let mut employees = match self.employees_by_department.get_mut(dept) {
                 Some(vec) => vec,
                 None => {
                     println!("Error: No department with name \"{}\" found.", dept);
                     return ();
                 }
             };
-
+            employees.sort();
             let employees = employees.join(", ");
             println!("Employees in {}: {}", dept, employees);
         }
@@ -306,6 +309,9 @@ pub mod department {
             if name.len() == 0 {
                 return Return::Empty;
             }
+
+            // removes the space at the end of the name from formatting
+            name.pop();
 
             Return::Some(name)
         }
