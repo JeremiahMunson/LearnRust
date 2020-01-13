@@ -107,6 +107,8 @@ fn main() {
     println!("\nUpdate Employee Directory");
     let mut dir = department::Directory::new();
     loop {
-        dir.update();
+        if let Some("Exit") = dir.update() {
+            break;
+        }
     }
 }

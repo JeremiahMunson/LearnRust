@@ -196,7 +196,7 @@ pub mod department {
             }
         }
 
-        pub fn update(&mut self) {
+        pub fn update(&mut self) -> Option<&str> {
             let mut user_input;
 
             loop {
@@ -210,11 +210,14 @@ pub mod department {
                     Some("Rename") =>   Directory::rename_employee(self, &mut split_text),
                     Some("Print") =>    Directory::print(self, &mut split_text),
                     Some("Help") =>     Directory::help(&mut split_text),
+                    Some("Exit") =>     return Option::Some("Exit"),
                     Some(s) =>          Directory::check_command(s),
                     None =>             println!("Please enter a command."),
                 };
                 break;
             }
+
+            Option::None
         }
 
         // General print function. Checks if user is printing a department and calls print_department(), or prints all the employees
