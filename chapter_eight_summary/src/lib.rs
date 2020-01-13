@@ -173,14 +173,14 @@ pub mod pig_latin {
 
 pub mod department {
     use std::io;
-    use std::collections::{LinkedList, HashMap};
+    use std::collections::HashMap;
 
     pub struct Directory {
         employees_by_department: HashMap<String, Vec<String>>,
         all_employees: Vec<String>,
     }
 
-    // Looked ahead for this
+    // Looked ahead for the general type <T>
     enum Return<T> {
         Some(T),
         Empty,
@@ -204,14 +204,19 @@ pub mod department {
                 io::stdin().read_line(&mut user_input).expect("Failed to read line.");
                 let mut split_text = user_input.split_whitespace();
                 match split_text.next() {
-                    Some("Add") => {Directory::add_employee(self, &mut split_text);},
-                    Some("Print") => {Directory::print(self, &mut split_text);},
-                    _ => {println!("Else");},
+                    Some("Add") =>      Directory::add_employee(self, &mut split_text),
+                    Some("Move") =>     Directory::move_employee(self, &mut split_text),
+                    Some("Remove") =>   Directory::remove_employee(self, &mut split_text),
+                    Some("Print") =>    Directory::print(self, &mut split_text),
+                    Some("Help") =>     Directory::help(&mut split_text),
+                    Some(s) =>          Directory::check_command(s),
+                    None =>             println!("Please enter a command."),
                 };
                 break;
             }
         }
 
+        // General print function. Checks if user is printing a department and calls print_department(), or prints all the employees
         fn print(&mut self, txt: &mut std::str::SplitWhitespace) {
             match Directory::get_name(txt, Option::None) {
                 Return::Some(s) => Directory::print_department(self, &s),
@@ -223,8 +228,9 @@ pub mod department {
             };
         }
 
+        // Prints the employees in the selected department
         fn print_department(&mut self, dept: &str) {
-            let mut employees = match self.employees_by_department.get_mut(dept) {
+            let employees = match self.employees_by_department.get_mut(dept) {
                 Some(vec) => vec,
                 None => {
                     println!("Error: No department with name \"{}\" found.", dept);
@@ -236,6 +242,7 @@ pub mod department {
             println!("Employees in {}: {}", dept, employees);
         }
 
+        // Adds an employee to a department and the entire company
         fn add_employee(dir: &mut Directory, txt: &mut std::str::SplitWhitespace) {
             /*
                 Getting new employee name and the department they are going to
@@ -260,7 +267,7 @@ pub mod department {
                 Return::None => return (),
             };
 
-            let mut coworkers = dir.employees_by_department.entry(department.clone()).or_insert(Vec::new());
+            let coworkers = dir.employees_by_department.entry(department.clone()).or_insert(Vec::new());
             if coworkers.contains(&name) {
                 println!("Error: Employee with that name already exists in that department.");
             } else {
@@ -270,6 +277,155 @@ pub mod department {
                 // Adding employee and departmet to list of all employees
                 dir.all_employees.push(format!("{} ({})", name, department));
             }
+        }
+
+        // Move an employee from their current department to a new department
+        fn move_employee(dir: &mut Directory, txt: &mut std::str::SplitWhitespace) {
+            let name = match Directory::get_name(txt, Option::Some("from")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find employee name");
+                    return ();
+                },
+                Return::None => return(),
+            };
+
+            let old_department = match Directory::get_name(txt, Option::Some("to")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find input for current department.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let new_department = match Directory::get_name(txt, Option::None) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find input for new department.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+
+            // Make sure there is no employee with the same name already in the new department
+            let new_coworkers = dir.employees_by_department.entry(new_department.clone()).or_insert(Vec::new());
+            if new_coworkers.contains(&name) {
+                println!("Error: Employee with name \"{}\" already exists in department \"{}\".", name, new_department);
+                return ();
+            }
+            // new_coworkers isn't used again allowing for a new variable with a mutable reference to dir.employees_by_department
+
+            // Make sure there is a department that the employee is supposed to be coming from
+            let former_coworkers = match dir.employees_by_department.get_mut(&old_department) {
+                Option::Some(v) => v,
+                Option::None => {
+                    println!("Error: No department \"{}\" exists.", old_department);
+                    return ();
+                },
+            };
+
+            if Directory::is_sorted(&former_coworkers)==false {
+                former_coworkers.sort();
+            }
+
+            // Finding and removing employee from current department unless the employee doesn't exits in that department
+            match former_coworkers.binary_search(&name) {
+                Ok(index) => former_coworkers.remove(index),
+                Err(_) => {
+                    println!("Error: No employee named \"{}\" in department \"{}\".", name, old_department);
+                    return ();
+                },
+            };
+
+            /*
+                We have already established that there is no employee with the same name already in the new department and
+                that there was an employee with the given name in the old department. Employee already removed from the
+                old department.
+            */
+
+            // redefining new_coworkers allows for a former_coworkers to be a mutable reference to dir.employees_by_department and
+            // for new_coworkers to also be a mutable reference to dir.employees_by_department
+            let new_coworkers = match dir.employees_by_department.get_mut(&new_department) {
+                Option::Some(v) => v,
+                Option::None => return (), // Shouldn't be Option::None because it would have been created above when checking
+            };
+            new_coworkers.push(name.clone());
+
+            let old_name = format!("{} ({})", name, old_department);
+            let new_name = format!("{} ({})", name, new_department);
+
+            if Directory::is_sorted(&dir.all_employees)==false {
+                dir.all_employees.sort();
+            }
+
+            match dir.all_employees.binary_search(&old_name) {
+                Ok(index) => dir.all_employees[index] = new_name, // new_name now no longer in scope
+                Err(_) => println!("Error: Was unable to rename employee in list of all employees."),
+            };
+        }
+
+        // Removes an employee from a department and the entire company
+        fn remove_employee(dir: &mut Directory, txt: &mut std::str::SplitWhitespace) {
+            let name = match Directory::get_name(txt, Option::Some("from")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find employee name.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let department = match Directory::get_name(txt, Option::None) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find department name.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let employees = match dir.employees_by_department.get_mut(&department) {
+                Some(v) => v,
+                None => {
+                    println!("Error: No such department exists.");
+                    return ();
+                }
+            };
+
+            // Make sure employees is sorted so we can do a binary search
+            if Directory::is_sorted(&employees)==false {
+                employees.sort();
+            }
+            match employees.binary_search(&name) {
+                Ok(index) => {
+                    employees.remove(index);
+                    if employees.len() == 0 {
+                        dir.employees_by_department.remove(&department);
+                    }
+                },
+                Err(_) => {
+                    println!("Error: No employee by that name exists in that department.");
+                    return ();
+                },
+            };
+
+
+
+            let employee = format!("{} ({})", name, department);
+
+            // Make sure all employees is sorted so we can do a binary search
+            if Directory::is_sorted(&dir.all_employees)==false {
+                dir.all_employees.sort();
+            }
+            match dir.all_employees.binary_search(&employee) {
+                Ok(index) => dir.all_employees.remove(index),
+                Err(_) => {
+                    println!("Error: Could not find employee in all employees.");
+                    return();
+                },
+            };
         }
 
         // Returns an Option<String> instead of Option<&str> because something about Lifetimes
@@ -314,6 +470,57 @@ pub mod department {
             name.pop();
 
             Return::Some(name)
+        }
+
+        // Checks if a vector of Strings is sorted or not
+        fn is_sorted(vector: &Vec<String>) -> bool {
+            let mut sorted = true;
+            let mut iterator = vector.iter();
+            match iterator.next() {
+                None => {
+                    println!("Error: Empty Vector");
+                    return false;
+                },
+                Some(s) => {
+                    let mut previous = s;
+                    for i in iterator {
+                        if i < previous {
+                            sorted = false;
+                            break;
+                        }
+                        previous = i;
+                    }
+                }
+            }
+
+            sorted
+        }
+
+        // Checks if input command is similar to an existing command
+        fn check_command(txt: &str) {
+            if txt=="add" || txt=="ADD" {
+                println!("Error: No command \"{}\" found. Did you mean \"Add\"?", txt);
+            } else if txt=="remove" || txt=="REMOVE" {
+                println!("Error: No command \"{}\" found. Did you mean \"Remove\"?", txt);
+            } else if txt=="print" || txt=="PRINT" {
+                println!("Error: No command \"{}\" found. Did you mean \"Print\"?", txt);
+            } else {
+                println!("Error: No command \"{}\" found. Try \"Help\" for a list of commands.", txt);
+            }
+        }
+
+        fn help(txt: &mut std::str::SplitWhitespace) {
+            match txt.next() {
+                Option::Some(_) => println!("Error: No text should follow \"Help\"."),
+                Option::None => {
+                    println!("Add Employee:\t\t\t\"Add 'name' to 'department'\"");
+                    println!("Move Employee:\t\t\t\"Move 'name from 'old department' to 'new department'\"");
+                    println!("Remove Employee:\t\t\"Remove 'name' from 'department'\"");
+                    println!("Print Employees in Department:\t\"Print 'department'\"");
+                    println!("Print All Employees:\t\t\"Print\"");
+                    println!("You don't need to add single quotes around names and departments. They can also be more than one word.");
+                },
+            };
         }
     }
 }

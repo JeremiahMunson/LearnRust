@@ -1,8 +1,6 @@
 use std::io;
 use rand::Rng;
 use mylib::{stats, pig_latin, department};
-use std::collections::HashMap;
-
 
 fn main() {
     /*
