@@ -207,6 +207,7 @@ pub mod department {
                     Some("Add") =>      Directory::add_employee(self, &mut split_text),
                     Some("Move") =>     Directory::move_employee(self, &mut split_text),
                     Some("Remove") =>   Directory::remove_employee(self, &mut split_text),
+                    Some("Rename") =>   Directory::rename_employee(self, &mut split_text),
                     Some("Print") =>    Directory::print(self, &mut split_text),
                     Some("Help") =>     Directory::help(&mut split_text),
                     Some(s) =>          Directory::check_command(s),
@@ -356,14 +357,7 @@ pub mod department {
             let old_name = format!("{} ({})", name, old_department);
             let new_name = format!("{} ({})", name, new_department);
 
-            if Directory::is_sorted(&dir.all_employees)==false {
-                dir.all_employees.sort();
-            }
-
-            match dir.all_employees.binary_search(&old_name) {
-                Ok(index) => dir.all_employees[index] = new_name, // new_name now no longer in scope
-                Err(_) => println!("Error: Was unable to rename employee in list of all employees."),
-            };
+            Directory::rename_all_employees(dir, old_name, new_name);            
         }
 
         // Removes an employee from a department and the entire company
@@ -424,6 +418,74 @@ pub mod department {
                 Err(_) => {
                     println!("Error: Could not find employee in all employees.");
                     return();
+                },
+            };
+        }
+
+        // Rename an employee
+        fn rename_employee(dir: &mut Directory, txt: &mut std::str::SplitWhitespace) {
+            let old_name = match Directory::get_name(txt, Option::Some("in")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find input for employee name.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let department = match Directory::get_name(txt, Option::Some("to")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find input for department name.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let new_name = match Directory::get_name(txt, Option::None) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find input for new name.");
+                    return ();
+                },
+                Return::None => return (),
+            };
+
+            let coworkers = match dir.employees_by_department.get_mut(&department) {
+                Option::Some(v) => v,
+                Option::None => {
+                    println!("Error: No department named \"{}\" found.", department);
+                    return ();
+                },
+            };
+
+            if Directory::is_sorted(&coworkers)==false {
+                coworkers.sort();
+            }
+            match coworkers.binary_search(&old_name) {
+                Ok(index) => coworkers[index] = new_name.clone(),
+                Err(_) => {
+                    println!("Error: No employee named \"{}\" in department \"{}\".", old_name, department);
+                    return ();
+                },
+            };
+
+            let old_name = format!("{} ({})", old_name, department);
+            let new_name = format!("{} ({})", new_name, department);
+
+            Directory::rename_all_employees(dir, old_name, new_name);
+        }
+
+        fn help(txt: &mut std::str::SplitWhitespace) {
+            match txt.next() {
+                Option::Some(_) => println!("Error: No text should follow \"Help\"."),
+                Option::None => {
+                    println!("Add Employee:\t\t\t\"Add 'name' to 'department'\"");
+                    println!("Move Employee:\t\t\t\"Move 'name from 'old department' to 'new department'\"");
+                    println!("Remove Employee:\t\t\"Remove 'name' from 'department'\"");
+                    println!("Print Employees in Department:\t\"Print 'department'\"");
+                    println!("Print All Employees:\t\t\"Print\"");
+                    println!("You don't need to add single quotes around names and departments. They can also be more than one word.");
                 },
             };
         }
@@ -509,17 +571,14 @@ pub mod department {
             }
         }
 
-        fn help(txt: &mut std::str::SplitWhitespace) {
-            match txt.next() {
-                Option::Some(_) => println!("Error: No text should follow \"Help\"."),
-                Option::None => {
-                    println!("Add Employee:\t\t\t\"Add 'name' to 'department'\"");
-                    println!("Move Employee:\t\t\t\"Move 'name from 'old department' to 'new department'\"");
-                    println!("Remove Employee:\t\t\"Remove 'name' from 'department'\"");
-                    println!("Print Employees in Department:\t\"Print 'department'\"");
-                    println!("Print All Employees:\t\t\"Print\"");
-                    println!("You don't need to add single quotes around names and departments. They can also be more than one word.");
-                },
+        fn rename_all_employees(dir: &mut Directory, old_name: String, new_name: String) {
+            if Directory::is_sorted(&dir.all_employees)==false {
+                dir.all_employees.sort();
+            }
+
+            match dir.all_employees.binary_search(&old_name) {
+                Ok(index) => dir.all_employees[index] = new_name, // new_name now no longer in scope
+                Err(_) => println!("Error: Was unable to rename employee in list of all employees."),
             };
         }
     }
