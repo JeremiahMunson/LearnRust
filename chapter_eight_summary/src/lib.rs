@@ -175,459 +175,139 @@ pub mod department {
     use std::io;
     use std::collections::{LinkedList, HashMap};
 
-    pub enum Next {
-        CONT,
-        BREAK,
+    pub struct Directory {
+        employees_by_department: HashMap<String, Vec<String>>,
+        all_employees: Vec<String>,
     }
 
-    pub fn update_employees(employees_by_department: &mut HashMap<String, Vec<String>>) -> Next {
-        let mut user_input;
+    // Looked ahead for this
+    enum Return<T> {
+        Some(T),
+        Empty,
+        None,
+    }
 
-        loop { 
-            user_input = String::new();
-            io::stdin().read_line(&mut user_input).expect("Failed to read line.");
-            let split_text = user_input.split_whitespace();
-            let mut words: LinkedList<&str> = LinkedList::new();
-            for word in split_text {
-                words.push_back(word);
+    impl Directory {
+        // Make new, empty directoy
+        pub fn new() -> Directory {
+            Directory {
+                employees_by_department: HashMap::new(),
+                all_employees: Vec::new(),
             }
-            match words.pop_front() {
-                Some("Add") => {
-                    match add_employee(&mut words, employees_by_department) {
-                        Next::CONT => {println!("Error: Could not add employee. Try again."); continue},
-                        Next::BREAK => break,
-                    }
-                },
-                Some("Remove") => {
-                    match remove_employee(&mut words, employees_by_department) {
-                        Next::CONT => {println!("Error: Could not remove employee. Try again."); continue},
-                        Next::BREAK => break
-                    }
-                },
-                Some("Move") => {
-                    match move_employee(&mut words, employees_by_department) {
-                        Next::CONT => {println!("Error: Could not move employees. Try again."); continue},
-                        Next::BREAK => break
-                    }
-                },
-                Some("Rename") => {
-                    match rename_employee(&mut words, employees_by_department) {
-                        Next::CONT => {println!("Error: Could not rename employee. Try again."); continue},
-                        Next::BREAK => break
-                    }
-                },
-                Some("Print") => {
-                    match print(&mut words, employees_by_department) {
-                        Next::CONT => {println!("Error: Could not print employees. Try again."); continue},
-                        Next::BREAK => break
-                    }
-                },
-                Some("Help") => {
-                    help_info(); 
-                    break;
-                },
-                Some("Exit") => {
-                    return Next::BREAK;
-                },
-                _ => continue,
+        }
+
+        pub fn update(&mut self) {
+            let mut user_input;
+
+            loop {
+                user_input = String::new();
+                io::stdin().read_line(&mut user_input).expect("Failed to read line.");
+                let mut split_text = user_input.split_whitespace();
+                match split_text.next() {
+                    Some("Add") => {Directory::add_employee(self, &mut split_text);},
+                    Some("Print") => {Directory::print(self, &mut split_text);},
+                    _ => {println!("Else");},
+                };
+                break;
+            }
+        }
+
+        fn print(&mut self, txt: &mut std::str::SplitWhitespace) {
+            match Directory::get_name(txt, Option::None) {
+                Return::Some(s) => Directory::print_department(self, &s),
+                Return::Empty => println!("{:?}", self.all_employees),
+                Return::None => return (),
             };
         }
 
-        Next::CONT
-    }
-
-    fn help_info() {
-        println!("Add employee: 'Add name to dept'");
-        println!("Remove employee: 'Remove name from dept'");
-        println!("Move employee: 'Move name from old_dept to new_dept'");
-        println!("Rename employee: 'Rename old_name in dept to new_name");
-        println!("Print employees from department: 'Print dept'");
-        println!("Print all employees: 'Print'");
-        println!("Leave program: 'Exit'");
-
-        println!("Names and departments can be multiple words.");
-
-    }
-
-    fn add_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next{
-        let mut name = String::new();
-        // Loop through the input until we reach "to". Everything before that is a name
-        loop {
-            let next = txt.pop_front();
-            // Check if next word is "to", something else, or doesn't exist
-            match next {
-                // If the next word is "to", leave the loop
-                Some("to") => break,
-                // If the next word exists, add it to the name
-                Some(i) => {
-                    name = format!("{}{} ", name, i)
-                },
-                // If there is no next word, return Next::CONT because it can't add employee
-                None => return Next::CONT,
-            };
-        }
-
-        // If the length of name is 0 then there was no name input
-        if name.len() == 0 {
-            return Next::CONT;
-        }
-        name.pop(); // Removes space added from formating
-
-        let mut department_name = String::new();
-        // Loop through the input until we reach the end of the string. Everything is
-        // the department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some(i) => {
-                    department_name = format!("{}{} ", department_name, i)
+        fn print_department(&mut self, dept: &str) {
+            let employees = match self.employees_by_department.get(dept) {
+                Some(vec) => vec,
+                None => {
+                    println!("Error: No department with name \"{}\" found.", dept);
+                    return ();
                 }
-                None => break
             };
+
+            let employees = employees.join(", ");
+            println!("Employees in {}: {}", dept, employees);
         }
 
-        // If the length of department_name is 0 then there was no department name input
-        if department_name.len() == 0 {
-            return Next::CONT;
-        }
+        fn add_employee(dir: &mut Directory, txt: &mut std::str::SplitWhitespace) {
+            /*
+                Getting new employee name and the department they are going to
 
-        department_name.pop(); // Removes space added from formatting
-
-        let name_cloned = name.clone();
-        let department_cloned = department_name.clone();
-        
-        
-        let emps = employees.entry(department_name).or_insert(Vec::new());
-        // department_name no longer in scope
-
-
-        // .contains() would expect &&name but &&name is type &&String and it wants &&str
-        // I got around this by making a reference to name as a variable because 
-        // Rust can force &String to act like &str but apparently not &&String to &&str
-        if emps.contains(&name) {
-            println!("An employee with that name already exists in this department");
-            return Next::CONT;
-        }
-
-        // If the vector already has the name it would have returned, leaving the function and
-        // not reaching this point
-        emps.push(name);
-        // name no longer in scope
-        emps.sort();
-
-        println!("Added {} to {}", name_cloned, department_cloned);
-
-        Next::BREAK
-    }
-    
-    fn remove_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
-        let mut name = String::new();
-        // Loop through the input until we reach "to". Everything before that is a name
-        loop {
-            let next = txt.pop_front();
-            // Check if next word is "to", something else, or doesn't exist
-            match next {
-                // If the next word is "to", leave the loop
-                Some("from") => break,
-                // If the next word exists, add it to the name
-                Some(i) => {
-                    name = format!("{}{} ", name, i)
+                Passing 'txt' not '&mut txt' because 'txt' is already a mutable reference
+            */
+            let name = match Directory::get_name(txt, Option::Some("to")) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find employee name.");
+                    return ();
                 },
-                // If there is no next word, return Next::CONT because it can't add employee
-                None => return Next::CONT,
+                Return::None => return (),
             };
-        }
 
-        // If the length of name is 0 then there was no name input
-        if name.len() == 0 {
-            return Next::CONT;
-        }
-        name.pop(); // Removes space added from formating
-
-        let mut department_name = String::new();
-        // Loop through the input until we reach the end of the string. Everything is
-        // the department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some(i) => {
-                    department_name = format!("{}{} ", department_name, i)
+            let department = match Directory::get_name(txt, Option::None) {
+                Return::Some(s) => s,
+                Return::Empty => {
+                    println!("Error: Could not find department name.");
+                    return ();
                 }
-                None => break
+                Return::None => return (),
             };
-        }
 
-        // If the length of department_name is 0 then there was no department name input
-        if department_name.len() == 0 {
-            return Next::CONT;
-        }
+            let mut coworkers = dir.employees_by_department.entry(department.clone()).or_insert(Vec::new());
+            if coworkers.contains(&name) {
+                println!("Error: Employee with that name already exists in that department.");
+            } else {
+                // Adding employee to list of employees in department
+                coworkers.push(name.clone());
 
-        department_name.pop(); // Removes space added from formatting
-
-        let emps = match employees.get_mut(&department_name) {
-            Some(v) => v,
-            None => return Next::CONT,
-        };
-
-        let location_employee = emps.binary_search(&name);
-        match location_employee {
-            Ok(loc) => emps.remove(loc),
-            _ => return Next::CONT,
-        };
-        
-        if emps.len() == 0 {
-            employees.remove(&department_name);
-        }
-
-        println!("Removed {} from {}", name, department_name);
-
-        Next::BREAK
-    }
-
-    fn print(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
-        let mut dep = String::new();
-        loop {
-            let next = txt.pop_front();
-            let new_word = match next {
-                Some(i) => i,
-                None => break,
-            };
-            dep = format!("{}{} ", dep, new_word);
-        }
-
-        if dep.len() == 0 {
-            return print_everyone(employees);
-        }
-
-        // Remove space from formatting
-        dep.pop();
-
-        // Get vector of people from the hash map
-        let dep_employees = match employees.get(&dep) {
-            Some(txt) => txt,
-            None => return Next::CONT,
-        };
-
-        let mut people = String::new();
-        for person in dep_employees {
-            people = format!("{}{}, ", people, person);
-        }
-        people.pop();
-        people.pop();
-
-        println!("Employees in {}: {:?}", dep, people);
-
-        Next::BREAK
-    }
-
-    fn print_everyone(employees: &mut HashMap<String, Vec<String>>) -> Next{
-        let mut everyone:  Vec<String> = Vec::new();
-        let mut all_employees = employees.clone();
-        for val in all_employees.values_mut() {
-            everyone.append(val);
-        }
-
-        everyone.sort();
-        let mut people = String::new();
-        for person in everyone {
-            people = format!("{}{}, ", people, person);
-        }
-
-        people.pop();
-        people.pop();
-
-        println!("All Employees: {}", people);
-
-        Next::BREAK
-    }
-
-    fn move_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
-        let mut name = String::new();
-        // Loop through the input until we reach "in". Everything before that is a name
-        loop {
-            let next = txt.pop_front();
-            // Check if next word is "in", something else, or doesn't exist
-            match next {
-                // If the next word is "in", leave the loop
-                Some("from") => break,
-                // If the next word exists, add it to the name
-                Some(i) => {
-                    name = format!("{}{} ", name, i)
-                },
-                // If there is no next word, return Next::CONT because it can't add employee
-                None => return Next::CONT,
-            };
-        }
-
-        // If the length of name is 0 then there was no name input
-        if name.len() == 0 {
-            return Next::CONT;
-        }
-        name.pop(); // Removes space added from formating
-
-        //println!("Name: {}", name);
-
-        let mut old_department = String::new();
-        // Loop through the input until we reach "to". Everything is
-        // the current department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some("to") => break,
-                Some(i) => {
-                    old_department = format!("{}{} ", old_department, i)
-                },
-                None => return Next::CONT,
-            };
-        }
-
-        // If the length of old_department is 0 then there was no department name input
-        if old_department.len() == 0 {
-            return Next::CONT;
-        }
-
-        old_department.pop(); // Removes space added from formatting
-
-
-        let mut new_department = String::new();
-        // Loop through the input until we reach the end of the string. Everything is
-        // the new department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some(i) => {
-                    new_department = format!("{}{} ", new_department, i);
-                },
-                None => break,
+                // Adding employee and departmet to list of all employees
+                dir.all_employees.push(format!("{} ({})", name, department));
             }
         }
 
-        // If the length of new_department is 0 then there was no department name input
-        if new_department.len() == 0 {
-            return Next::CONT;
-        }
+        // Returns an Option<String> instead of Option<&str> because something about Lifetimes
+        fn get_name(txt: &mut std::str::SplitWhitespace, stop: Option<&str> ) -> Return<String> {
+            let mut name = String::new();
+            loop {
+                match stop {
+                    // If stop at special word
+                    Option::Some(s) => {
+                        match txt.next() {
+                            Some(t) => {
+                                // If string is the stopping string, break, else, add string to name
+                                if s == t {
+                                    break;
+                                } else {
+                                    name = format!("{}{} ", name, t);
+                                }
+                            },
 
-        new_department.pop();
-
-        //let name_cloned = name.clone();
-        //let old_cloned = old_department.clone();
-        //let new_cloned = new_department.clone();
-
-
-        let emps = match employees.get_mut(&old_department) {
-            Some(v) => v,
-            None => return Next::CONT,
-        };
-
-        let location_employee = emps.binary_search(&name);
-        match location_employee {
-            Ok(loc) => emps.remove(loc),
-            _ => return Next::CONT,
-        };
-
-        let new_emps = employees.entry(new_department.clone()).or_insert(Vec::new());
-        new_emps.push(name.clone());
-        new_emps.sort();
-
-
-        println!("Moved {} from {} to {}", name, old_department, new_department);
-
-
-        Next::BREAK
-    }
-
-
-    fn rename_employee(txt: &mut LinkedList<&str>, employees: &mut HashMap<String, Vec<String>>) -> Next {
-        let mut old_name = String::new();
-        // Loop through the input until we reach "in". Everything before that is a name
-        loop {
-            let next = txt.pop_front();
-            // Check if next word is "in", something else, or doesn't exist
-            match next {
-                // If the next word is "in", leave the loop
-                Some("in") => break,
-                // If the next word exists, add it to the name
-                Some(i) => {
-                    old_name = format!("{}{} ", old_name, i)
-                },
-                // If there is no next word, return Next::CONT because it can't add employee
-                None => return Next::CONT,
-            };
-        }
-
-        // If the length of name is 0 then there was no name input
-        if old_name.len() == 0 {
-            return Next::CONT;
-        }
-        old_name.pop(); // Removes space added from formating
-
-        //println!("Name: {}", name);
-
-        let mut department = String::new();
-        // Loop through the input until we reach "to". Everything is
-        // the current department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some("to") => break,
-                Some(i) => {
-                    department = format!("{}{} ", department, i)
-                },
-                None => return Next::CONT,
-            };
-        }
-
-        // If the length of old_department is 0 then there was no department name input
-        if department.len() == 0 {
-            return Next::CONT;
-        }
-
-        department.pop(); // Removes space added from formatting
-
-
-        let mut new_name = String::new();
-        // Loop through the input until we reach the end of the string. Everything is
-        // the new department name
-        loop {
-            let next = txt.pop_front();
-            match next {
-                Some(i) => {
-                    new_name = format!("{}{} ", new_name, i);
-                },
-                None => break,
-            }
-        }
-
-        // If the length of new_department is 0 then there was no department name input
-        if new_name.len() == 0 {
-            return Next::CONT;
-        }
-
-        new_name.pop();
-
-        let emps = match employees.get_mut(&department) {
-            Some(v) => v,
-            None => return Next::CONT,
-        };
-
-        match emps.binary_search(&new_name) {
-            Ok(_) => return Next::CONT,
-            Err(_) => {
-                if let Ok(loc) = emps.binary_search(&old_name) {
-                    if let Some(s) = emps.get_mut(loc) {
-                        *s = new_name.clone();
+                            None => {
+                                println!("Error: Expected keyword \"{}\" after employee name.", s);
+                                return Return::None;
+                            },
+                        };
+                    },
+                    // If stop at end of text
+                    Option::None => {
+                        match txt.next() {
+                            Some(t) => {
+                                name = format!("{}{} ", name, t);
+                            }, 
+                            None => break
+                        };
                     }
-                }
+                };
             }
-        };
-        
+            if name.len() == 0 {
+                return Return::Empty;
+            }
 
-
-
-
-        println!("Renamed {} in {} to {}", old_name, department, new_name);
-
-
-        Next::BREAK
+            Return::Some(name)
+        }
     }
 }
