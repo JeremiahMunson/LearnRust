@@ -273,6 +273,7 @@ fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
             largest = item;
         }
     }
+    largest
 }
 
 pub fn notify(item: & impl Summary) {
