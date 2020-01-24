@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 struct Point<T> {
     x: T,
     y: T,
@@ -77,6 +79,24 @@ impl Summary for Tweet {
 
     fn summarize_author(&self) -> String {
         format!("@{}", self.username)
+    }
+}
+
+struct ImportantExcerpt<'a> {
+    part: &'a str,
+}
+
+impl<'a> ImportantExcerpt<'a> {
+    fn level(&self) -> i32 {
+        3
+    }
+
+    // lifetime annotation not necessary by elision rules because the
+    // method has &self so the return lifetime is set to follow the
+    // lifetime of the object (I think)
+    fn announce_and_return_part(&self, announcement: &str) -> &str {
+        println!("Attention please: {}", announcement);
+        self.part
     }
 }
 
@@ -225,6 +245,86 @@ fn main() {
 
         impl<T: Display> ToString for T {
     */
+
+
+
+
+    /*
+        Lifetimes are basically how long a variable is in scope. This
+        can be problematic sometimes. Take the `longest` function that
+        includes lifetime annotations. The lifetime annotation uses the
+        apostraphe (') followed immediately by a reference name, usually
+        all lowercase and very short. Most people use the name 'a. If
+        the lifetime annotation wasn't used, the code wouldn't
+        compile because the compiler wouldn't know what the lifetime of
+        the returned reference would be.
+
+        The lifetimes only give the compiler a way to check that
+        references last long enough. In the code below, `string1` lasts
+        for the outer lifetime and `string2` lasts for the inner
+        lifetime. The result also lasts for the inner lifetime so the
+        code will work even though the input lifetimes are no the
+        same. As long as both variables last as long or longer than the
+        returned reference needs to be. 
+    */
+    {
+        let string1 = String::from("long string is long");
+        let result;
+        {
+            let string2 = String::from("xyz");
+            result = longest(string1.as_str(), string2.as_str());
+            println!("The longest string is: {}", result);
+        }
+        /*
+            If we tried printing result out here, the code wouldn't 
+            compile because result would be used (and therefore last
+            longer) after `string2` would have no longer be in scope. Even
+            though `string1` is being returned and that does last it
+            doesn't matter because the compiler doesn't know that.
+        */
+    }
+    /*
+        We can also add references to structs using lifetime
+        annotations. For example, the `ImportantExcerpt` structure has
+        a field `part` that takes a string slice which is a reference. The
+        lifetime annotation means an instance of `ImportantExcerpt` can't
+        outlive the reference it holds in its `part` field. 
+    */
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.')
+        .next()
+        .expect("Could not find a '.'");
+    let i = ImportantExcerpt{ part: first_sentence };
+    /*
+        We don't need reference annotations for the function from
+        chapter 4
+
+        fn first_word(s: &str) -> &str {
+
+        because early Rust programmers were using lifetime annotations a
+        lot and decided they could implement it into the compiler to
+        infer the lifetimes in these situations. These are implemented by
+        the lifetime elision rules.
+
+
+
+        We can implement methods on a struct with lifetimes. We use the
+        same syntax as that of generic type parameters.
+    */
+
+    /*
+        There's a special lifetime we need to discuss called 'static which
+        means that this reference can live for the entire duration of the
+        program. All string literals have the 'static lifetime, which we
+        can annotate as follows:
+    */
+    let s: &'static str = "I have a static lifetime.";
+    /*
+        Sometimes the compiler may recommend using the 'static lifetime in
+        error messages. Often times, the problem is with something other
+        than adding the 'static lifetime, like a dangling reference. Take
+        a close look at the real problem without just adding 'static
+    */
 }
 
 fn largest_i32(list: &[i32]) -> i32 {
@@ -292,3 +392,24 @@ fn returns_summarizable() -> impl Summary {
         retweet: false,
     }
 }
+
+
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+
+// Generic type parameters, trait bounds, and lifetimes together
+fn longest_with_an_announcement<'a, T>(x: &'a str, y: &'a str, ann: T) -> &'a str
+    where T: Display
+{
+    println!("Announcement! {}", ann);
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+} 
