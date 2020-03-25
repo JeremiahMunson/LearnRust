@@ -42,6 +42,20 @@
     objects, which Chapters 13 and 17 will cover in detail.
 */
 
+// The function std::env::args enables minigrep to read the values of 
+// command line arguments. This function returns an iterator of the 
+// command line arguments that were given.
+use std::env;
+
 fn main() {
-    println!("Hello, world!");
+    // The collect method turns iterator into a collection (like vector)
+    let args: Vec<String> = env::args().collect();
+
+    // Index 0 is the program's name, so we start with index 1 then
+    // index 2 for the input
+    let query = &args[1];
+    let filename = &args[2];
+
+    println!("Searching for {}", query);
+    println!("In file {}", filename);
 }
