@@ -46,6 +46,10 @@ impl Guess {
     }
 }
 
+fn internal_adder(a: i32, b: i32) -> i32 {
+    a + b
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,6 +60,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn another() {
         panic!("Make this test fail");
     }
@@ -88,6 +93,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn larger_holds_smaller_err () {
         let larger = Rectangle { width: 8, height: 7 };
         let smaller = Rectangle { width: 5, height: 1 };
@@ -163,6 +169,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn greeting_without_name_contains_name () {
         let result = greeting_nameless("Carol");
         assert!(
@@ -215,11 +222,13 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[ignore]
     fn in_range_string () {
         Guess::new(50);
     }
 
     #[test]
+    #[ignore]
     #[should_panic(expected = "Guess value must be greater than or equal to 1")]
     fn failing_panic () {
         Guess::new(200);
@@ -262,6 +271,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn it_doesnt_work() -> Result<(), String> {
         if 2+2 == 5 {
             Ok(())
@@ -288,7 +298,13 @@ mod tests {
     #[test]
     #[ignore]
     fn expensive_test() {
-        
+
+    }
+
+    #[test]
+    fn internal() {
+        assert_eq!(4, internal_adder(2,2));
     }
 }
+
 
