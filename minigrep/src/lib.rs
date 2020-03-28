@@ -33,3 +33,54 @@ impl Config{
         Ok(Config { query, filename })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_config_pass() {
+        let arr = ["zero".to_string(), "one".to_string(), "two".to_string()];
+        let config = Config::new(&arr).unwrap_or_else(|err| {
+            panic!("Error: {}", err);
+        });
+        assert_eq!(arr[1], config.query);
+        assert_eq!(arr[2], config.filename);
+    }
+
+    #[test]
+    #[should_panic(expected = "Error: not enough arguments")]
+    fn new_config_too_short() {
+        let arr = ["zero".to_string(), "one".to_string()];
+        let config = Config::new(&arr).unwrap_or_else(|err| {
+            panic!("Error: {}", err);
+        });
+        assert_eq!(arr[0], config.query);
+        assert_eq!(arr[1], config.filename);
+    }
+
+    #[test]
+    fn run_pass() {
+        let arr = ["zero".to_string(), "the".to_string(), "poem.txt".to_string()];
+        let config = Config::new(&arr).unwrap_or_else(|err| {
+            panic!("Error: {}", err);
+        });
+
+        if let Err(e) = run(config) {
+            panic!("Application error: {}", e);
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "Application error")]
+    fn run_no_file() {
+        let arr = ["zero".to_string(), "the".to_string(), "test.txt".to_string()];
+        let config = Config::new(&arr).unwrap_or_else(|err| {
+            panic!("Error: {}", err);
+        });
+
+        if let Err(e) = run(config) {
+            panic!("Application error: {}", e);
+        }
+    }
+}
