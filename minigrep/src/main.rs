@@ -59,8 +59,6 @@ fn main() {
         process::exit(1);
     });
 
-    println!("Searching for {}", config.query);
-    println!("In file {}", config.filename);
     
     // Only really want to do somehting if an Err(), no other case, so
     // we use if let

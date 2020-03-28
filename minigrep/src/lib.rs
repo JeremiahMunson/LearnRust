@@ -7,7 +7,9 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // ? covered in Chapter 9 returns error value from current function
     let contents = fs::read_to_string(config.filename)?;
 
-    println!("With text:\n{}", contents);
+    for line in search(&config.query, &contents) {
+        println!("{}", line);
+    }
 
     Ok(())
 }
@@ -33,6 +35,31 @@ impl Config{
         Ok(Config { query, filename })
     }
 }
+
+// Because search returns string slices of contents, we need to make 
+// sure the lifetime of the return value matches the lifetime of the
+// contents
+pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
+    let mut results = Vec::new();
+
+    // lines is a method that allows iteration over lines of a string
+    for line in contents.lines() {
+        // contains checks if string contains the input
+        if line.contains(query) {
+            results.push(line);
+        }
+    }
+
+    results
+}
+
+/*
+    Test-driven development (TDD) process:
+        1. Write a test that fails and run it to make sure it fails for the reason you expect.
+        2. Write or modiy just enough code to make the new test pass.
+        3. Refactor the code you just added or changed and make sure the tests continue to pass.
+        4. Repeat from step 1.
+*/
 
 #[cfg(test)]
 mod tests {
@@ -82,5 +109,20 @@ mod tests {
         if let Err(e) = run(config) {
             panic!("Application error: {}", e);
         }
+    }
+
+    #[test]
+    fn one_result() {
+        let query = "duct";
+        let contents = "\
+Rust:
+safe, fast, productive.
+Pick three.";
+
+        // This test searches for the string "duct" in contents.
+        assert_eq!(
+            vec!["safe, fast, productive."],
+            search(query, contents)
+        );
     }
 }
