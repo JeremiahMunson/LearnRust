@@ -45,7 +45,7 @@
 // The function std::env::args enables minigrep to read the values of 
 // command line arguments. This function returns an iterator of the 
 // command line arguments that were given.
-use std::env;
+use std::{env, fs};
 
 fn main() {
     // The collect method turns iterator into a collection (like vector)
@@ -58,4 +58,10 @@ fn main() {
 
     println!("Searching for {}", query);
     println!("In file {}", filename);
+    
+    // fs::read_to_string returns Result<String>
+    let contents = fs::read_to_string(filename)
+        .expect("Something went wrong reading the file.");
+
+    println!("With text:\n{}", contents);
 }
