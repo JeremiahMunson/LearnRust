@@ -55,7 +55,7 @@ fn main() {
     // Calls Config::new() then either retrieves what's in Ok() or
     // if Err() prints the problem and ends the program
     let config = Config::new(&args).unwrap_or_else(|err| {
-        println!("Problem parsing arguments: {}", err);
+        eprintln!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
 
@@ -63,8 +63,11 @@ fn main() {
     // Only really want to do somehting if an Err(), no other case, so
     // we use if let
     if let Err(e) = minigrep::run(config) {
-        println!("Application error: {}", e);
+        eprintln!("Application error: {}", e);
 
         process::exit(1);
     }
 }
+
+// If you run `cargo run > output.txt` all non-error outpus will be
+// saved to the file `output.txt`
